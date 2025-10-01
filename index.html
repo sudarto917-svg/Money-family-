@@ -3,70 +3,296 @@
 <head>
   <meta charset="UTF-8">
   <title>Aplikasi Keuangan Keluarga</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
-    body { font-family: Arial, sans-serif; margin: 20px; }
-    h1 { color: #2c3e50; }
-    form { margin-bottom: 20px; }
-    input, select, button { margin: 5px; padding: 5px; }
-    table { border-collapse: collapse; width: 100%; }
-    th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
-    th { background: #f4f4f4; }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #f4f6f9;
+      color: #333;
+    }
+
+    header {
+      background: #2c3e50;
+      color: white;
+      padding: 20px;
+      text-align: center;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    }
+
+    .container {
+      max-width: 1000px;
+      margin: 20px auto;
+      padding: 0 15px;
+    }
+
+    .card {
+      background: white;
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+
+    h2 {
+      margin-top: 0;
+      color: #2c3e50;
+    }
+
+    form input, form select, form button {
+      padding: 10px;
+      margin: 8px 0;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      width: 100%;
+      box-sizing: border-box;
+      font-size: 14px;
+    }
+
+    form button {
+      background: #3498db;
+      color: white;
+      border: none;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+
+    form button:hover {
+      background: #2980b9;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 15px;
+    }
+
+    th, td {
+      text-align: left;
+      padding: 12px;
+      border-bottom: 1px solid #eee;
+    }
+
+    th {
+      background: #3498db;
+      color: white;
+    }
+
+    tr:hover {
+      background: #f9f9f9;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 12px;
+      color: white;
+    }
+
+    .pemasukan { background: #2ecc71; }
+    .pengeluaran { background: #e74c3c; }
   </style>
 </head>
 <body>
-  <h1>📊 Aplikasi Keuangan Keluarga</h1>
+  <header>
+    <h1>📊 Aplikasi Keuangan Keluarga</h1>
+    <p>Sederhana • Realtime • Berbasis Google Sheets</p>
+  </header>
 
-  <h2>Tambah Transaksi</h2>
-  <form id="transaksiForm">
-    <input type="date" name="tanggal" required>
-    <input type="text" name="kategori" placeholder="Kategori" required>
-    <select name="jenis">
-      <option value="Pemasukan">Pemasukan</option>
-      <option value="Pengeluaran">Pengeluaran</option>
-    </select>
-    <input type="number" name="nominal" placeholder="Nominal" required>
-    <input type="text" name="catatan" placeholder="Catatan">
-    <button type="submit">Tambah</button>
-  </form>
+  <div class="container">
+    <!-- Form Input -->
+    <div class="card">
+      <h2>Tambah Transaksi</h2>
+      <form id="transaksiForm">
+        <input type="date" name="tanggal" required>
+        <input type="text" name="kategori" placeholder="Kategori (mis: Gaji, Belanja)" required>
+        <select name="jenis">
+          <option value="Pemasukan">Pemasukan</option>
+          <option value="Pengeluaran">Pengeluaran</option>
+        </select>
+        <input type="number" name="nominal" placeholder="Nominal (Rp)" required>
+        <input type="text" name="catatan" placeholder="Catatan (opsional)">
+        <button type="submit">+ Tambah</button>
+      </form>
+    </div>
 
-  <h2>Daftar Transaksi</h2>
-  <table>
-    <thead>
-      <tr>
-        <th>Tanggal</th>
-        <th>Kategori</th>
-        <th>Jenis</th>
-        <th>Nominal</th>
-        <th>Catatan</th>
-      </tr>
-    </thead>
-    <tbody id="dataTransaksi"></tbody>
-  </table>
+    <!-- Tabel -->
+    <div class="card">
+      <h2>Daftar Transaksi</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Tanggal</th>
+            <th>Kategori</th>
+            <th>Jenis</th>
+            <th>Nominal</th>
+            <th>Catatan</th>
+          </tr>
+        </thead>
+        <tbody id="dataTransaksi"></tbody>
+      </table>
+    </div>
+
+    <!-- Grafik Pie -->
+    <div class="card">
+      <h2>Ringkasan Keuangan Bulan Ini</h2>
+      <canvas id="pieChart" height="100"></canvas>
+    </div>
+
+    <!-- Grafik Garis -->
+    <div class="card">
+      <h2>Tren Pemasukan & Pengeluaran</h2>
+      <canvas id="lineChart" height="100"></canvas>
+    </div>
+  </div>
 
   <script>
-    const API_URL = "https://script.google.com/macros/s/AKfycbwKjHgz5n9hBd19hsYvdRy750tbEB4TUYZdi1xIp9L49AXbfwF2PAq2hotSMXGSrTe9HQ/exec"; // ganti dengan URL Apps Script
+    const API_URL = "https://script.google.com/macros/s/AKfycbwKjHgz5n9hBd19hsYvdRy750tbEB4TUYZdi1xIp9L49AXbfwF2PAq2hotSMXGSrTe9HQ/exec
 
-    // Load data transaksi
+    "; // Ganti dengan URL Google Apps Script
+
+    let pieChart, lineChart;
+
+    function formatRupiah(angka) {
+      return "Rp " + parseInt(angka).toLocaleString("id-ID");
+    }
+
     function loadTransaksi() {
       fetch(API_URL)
         .then(res => res.json())
         .then(data => {
           let tbody = document.getElementById("dataTransaksi");
           tbody.innerHTML = "";
+          let totalPemasukan = 0;
+          let totalPengeluaran = 0;
+
+          // Untuk grafik garis
+          let daily = {};
+
           data.forEach(row => {
+            let nominal = Number(row.nominal);
+            if (row.jenis === "Pemasukan") {
+              totalPemasukan += nominal;
+            } else {
+              totalPengeluaran += nominal;
+            }
+
+            // simpan data per tanggal
+            if (!daily[row.tanggal]) {
+              daily[row.tanggal] = { pemasukan: 0, pengeluaran: 0 };
+            }
+            if (row.jenis === "Pemasukan") {
+              daily[row.tanggal].pemasukan += nominal;
+            } else {
+              daily[row.tanggal].pengeluaran += nominal;
+            }
+
+            let badge = row.jenis === "Pemasukan" 
+                        ? `<span class="badge pemasukan">Pemasukan</span>` 
+                        : `<span class="badge pengeluaran">Pengeluaran</span>`;
             let tr = `<tr>
               <td>${row.tanggal}</td>
               <td>${row.kategori}</td>
-              <td>${row.jenis}</td>
-              <td>${row.nominal}</td>
-              <td>${row.catatan}</td>
+              <td>${badge}</td>
+              <td>${formatRupiah(row.nominal)}</td>
+              <td>${row.catatan || "-"}</td>
             </tr>`;
             tbody.innerHTML += tr;
           });
+
+          updatePieChart(totalPemasukan, totalPengeluaran);
+          updateLineChart(daily);
         });
     }
 
-    // Tambah transaksi
+    function updatePieChart(pemasukan, pengeluaran) {
+      const ctx = document.getElementById("pieChart").getContext("2d");
+
+      if (pieChart) pieChart.destroy();
+
+      pieChart = new Chart(ctx, {
+        type: "pie",
+        data: {
+          labels: ["Pemasukan", "Pengeluaran"],
+          datasets: [{
+            data: [pemasukan, pengeluaran],
+            backgroundColor: ["#2ecc71", "#e74c3c"]
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: { position: "bottom" },
+            tooltip: {
+              callbacks: {
+                label: function(context) {
+                  let value = context.raw;
+                  return context.label + ": " + formatRupiah(value);
+                }
+              }
+            }
+          }
+        }
+      });
+    }
+
+    function updateLineChart(dailyData) {
+      const ctx = document.getElementById("lineChart").getContext("2d");
+
+      if (lineChart) lineChart.destroy();
+
+      let labels = Object.keys(dailyData).sort();
+      let pemasukanData = labels.map(t => dailyData[t].pemasukan);
+      let pengeluaranData = labels.map(t => dailyData[t].pengeluaran);
+
+      lineChart = new Chart(ctx, {
+        type: "line",
+        data: {
+          labels: labels,
+          datasets: [
+            {
+              label: "Pemasukan",
+              data: pemasukanData,
+              borderColor: "#2ecc71",
+              fill: false,
+              tension: 0.3
+            },
+            {
+              label: "Pengeluaran",
+              data: pengeluaranData,
+              borderColor: "#e74c3c",
+              fill: false,
+              tension: 0.3
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            tooltip: {
+              callbacks: {
+                label: function(context) {
+                  return context.dataset.label + ": " + formatRupiah(context.raw);
+                }
+              }
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: {
+                callback: function(value) {
+                  return "Rp " + value.toLocaleString("id-ID");
+                }
+              }
+            }
+          }
+        }
+      });
+    }
+
     document.getElementById("transaksiForm").addEventListener("submit", function(e) {
       e.preventDefault();
       let data = Object.fromEntries(new FormData(e.target));
@@ -82,7 +308,6 @@
       });
     });
 
-    // Load pertama kali
     loadTransaksi();
   </script>
 </body>
