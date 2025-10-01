@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>Aplikasi Keuangan Keluarga</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    h1 { color: #2c3e50; }
+    form { margin-bottom: 20px; }
+    input, select, button { margin: 5px; padding: 5px; }
+    table { border-collapse: collapse; width: 100%; }
+    th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+    th { background: #f4f4f4; }
+  </style>
+</head>
+<body>
+  <h1>📊 Aplikasi Keuangan Keluarga</h1>
+
+  <h2>Tambah Transaksi</h2>
+  <form id="transaksiForm">
+    <input type="date" name="tanggal" required>
+    <input type="text" name="kategori" placeholder="Kategori" required>
+    <select name="jenis">
+      <option value="Pemasukan">Pemasukan</option>
+      <option value="Pengeluaran">Pengeluaran</option>
+    </select>
+    <input type="number" name="nominal" placeholder="Nominal" required>
+    <input type="text" name="catatan" placeholder="Catatan">
+    <button type="submit">Tambah</button>
+  </form>
+
+  <h2>Daftar Transaksi</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Tanggal</th>
+        <th>Kategori</th>
+        <th>Jenis</th>
+        <th>Nominal</th>
+        <th>Catatan</th>
+      </tr>
+    </thead>
+    <tbody id="dataTransaksi"></tbody>
+  </table>
+
+  <script>
+    const API_URL = "https://script.google.com/macros/s/AKfycbwKjHgz5n9hBd19hsYvdRy750tbEB4TUYZdi1xIp9L49AXbfwF2PAq2hotSMXGSrTe9HQ/exec"; // ganti dengan URL Apps Script
+
+    // Load data transaksi
+    function loadTransaksi() {
+      fetch(API_URL)
+        .then(res => res.json())
+        .then(data => {
+          let tbody = document.getElementById("dataTransaksi");
+          tbody.innerHTML = "";
+          data.forEach(row => {
+            let tr = `<tr>
+              <td>${row.tanggal}</td>
+              <td>${row.kategori}</td>
+              <td>${row.jenis}</td>
+              <td>${row.nominal}</td>
+              <td>${row.catatan}</td>
+            </tr>`;
+            tbody.innerHTML += tr;
+          });
+        });
+    }
+
+    // Tambah transaksi
+    document.getElementById("transaksiForm").addEventListener("submit", function(e) {
+      e.preventDefault();
+      let data = Object.fromEntries(new FormData(e.target));
+      fetch(API_URL, {
+        method: "POST",
+        body: JSON.stringify(data)
+      })
+      .then(res => res.text())
+      .then(msg => {
+        alert(msg);
+        e.target.reset();
+        loadTransaksi();
+      });
+    });
+
+    // Load pertama kali
+    loadTransaksi();
+  </script>
+</body>
+</html>
