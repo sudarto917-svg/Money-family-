@@ -1,312 +1,588 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8">
-  <title>Aplikasi Keuangan Keluarga</title>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <style>
-    body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      margin: 0;
-      padding: 0;
-      background: #f4f6f9;
-      color: #333;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FinaKu - Keuangan Keluarga (Single File)</title>
+    <style>
+        /* CSS Dasar untuk tampilan yang rapi */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f7f6;
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .container {
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            padding: 30px;
+            width: 100%;
+            max-width: 900px;
+            margin-bottom: 20px;
+        }
+        h1, h2, h3 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 25px;
+        }
+        .auth-section {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .auth-section button {
+            background-color: #4285F4; /* Google Blue */
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto;
+        }
+        .auth-section button:hover {
+            background-color: #3367D6;
+        }
+        .auth-section button img {
+            margin-right: 10px;
+            height: 20px;
+            width: 20px;
+        }
+        .dashboard-section, .form-section {
+            display: none; /* Akan ditampilkan oleh JS setelah autentikasi */
+        }
+        .summary-cards {
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            margin-bottom: 30px;
+        }
+        .card {
+            background-color: #e0f2f7; /* Light Blue */
+            padding: 20px;
+            border-radius: 6px;
+            text-align: center;
+            margin: 10px;
+            flex: 1;
+            min-width: 200px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        .card.income { background-color: #d4edda; } /* Light Green */
+        .card.expense { background-color: #f8d7da; } /* Light Red */
+        .card h3 {
+            margin-top: 0;
+            font-size: 1.2em;
+            color: #2c3e50;
+        }
+        .card p {
+            font-size: 1.8em;
+            font-weight: bold;
+            color: #007bff; /* Primary Blue */
+            margin: 5px 0 0;
+        }
+        .card.income p { color: #28a745; }
+        .card.expense p { color: #dc3545; }
 
-    header {
-      background: #2c3e50;
-      color: white;
-      padding: 20px;
-      text-align: center;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-    }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #555;
+        }
+        .form-group input[type="text"],
+        .form-group input[type="number"],
+        .form-group input[type="date"],
+        .form-group select {
+            width: calc(100% - 20px);
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-size: 1em;
+        }
+        .transaction-type-switcher {
+            display: flex;
+            margin-bottom: 20px;
+            border: 1px solid #007bff;
+            border-radius: 5px;
+            overflow: hidden;
+            width: fit-content;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .transaction-type-switcher button {
+            flex: 1;
+            padding: 10px 20px;
+            border: none;
+            background-color: #f0f8ff;
+            color: #007bff;
+            font-size: 1em;
+            cursor: pointer;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+        .transaction-type-switcher button.active {
+            background-color: #007bff;
+            color: white;
+        }
+        .transaction-type-switcher button:first-child { border-right: 1px solid #007bff; }
 
-    .container {
-      max-width: 1000px;
-      margin: 20px auto;
-      padding: 0 15px;
-    }
 
-    .card {
-      background: white;
-      border-radius: 12px;
-      padding: 20px;
-      margin-bottom: 20px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-    }
-
-    h2 {
-      margin-top: 0;
-      color: #2c3e50;
-    }
-
-    form input, form select, form button {
-      padding: 10px;
-      margin: 8px 0;
-      border-radius: 8px;
-      border: 1px solid #ccc;
-      width: 100%;
-      box-sizing: border-box;
-      font-size: 14px;
-    }
-
-    form button {
-      background: #3498db;
-      color: white;
-      border: none;
-      cursor: pointer;
-      transition: background 0.3s;
-    }
-
-    form button:hover {
-      background: #2980b9;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 15px;
-    }
-
-    th, td {
-      text-align: left;
-      padding: 12px;
-      border-bottom: 1px solid #eee;
-    }
-
-    th {
-      background: #3498db;
-      color: white;
-    }
-
-    tr:hover {
-      background: #f9f9f9;
-    }
-
-    .badge {
-      display: inline-block;
-      padding: 4px 10px;
-      border-radius: 6px;
-      font-size: 12px;
-      color: white;
-    }
-
-    .pemasukan { background: #2ecc71; }
-    .pengeluaran { background: #e74c3c; }
-  </style>
+        .btn-submit {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            width: 100%;
+            transition: background-color 0.3s ease;
+        }
+        .btn-submit:hover {
+            background-color: #218838;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        table th, table td {
+            border: 1px solid #eee;
+            padding: 12px 15px;
+            text-align: left;
+            font-size: 0.95em;
+        }
+        table th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+            color: #555;
+        }
+        table tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        .message {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 5px;
+            display: none;
+        }
+        .message.success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .message.error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        footer {
+            margin-top: 40px;
+            text-align: center;
+            color: #777;
+            font-size: 0.9em;
+        }
+    </style>
 </head>
 <body>
-  <header>
-    <h1>📊 Aplikasi Keuangan Keluarga</h1>
-    <p>Sederhana • Realtime • Berbasis Google Sheets</p>
-  </header>
 
-  <div class="container">
-    <!-- Form Input -->
-    <div class="card">
-      <h2>Tambah Transaksi</h2>
-      <form id="transaksiForm">
-        <input type="date" name="tanggal" required>
-        <input type="text" name="kategori" placeholder="Kategori (mis: Gaji, Belanja)" required>
-        <select name="jenis">
-          <option value="Pemasukan">Pemasukan</option>
-          <option value="Pengeluaran">Pengeluaran</option>
-        </select>
-        <input type="number" name="nominal" placeholder="Nominal (Rp)" required>
-        <input type="text" name="catatan" placeholder="Catatan (opsional)">
-        <button type="submit">+ Tambah</button>
-      </form>
+    <div class="container">
+        <h1>FinaKu</h1>
+        <h2>Kelola Keuangan Keluarga Anda</h2>
+
+        <section id="auth-section" class="auth-section">
+            <p>Hubungkan akun Google Anda untuk memulai. Data Anda akan disimpan di Google Sheets pribadi Anda.</p>
+            <button id="authorize_button">
+                <img src="https://www.gstatic.com/images/icons/material/system/1x/btn_google_light_normal_ios_24dp.png" alt="Google icon">
+                Hubungkan ke Google Sheets
+            </button>
+            <button id="signout_button" style="display: none;">Sign Out</button>
+            <p id="auth-status"></p>
+        </section>
+
+        <section id="dashboard-section" class="dashboard-section">
+            <h3>Ringkasan Keuangan</h3>
+            <div class="summary-cards">
+                <div class="card income">
+                    <h3>Pemasukan Bulan Ini</h3>
+                    <p id="total-income">Rp 0</p>
+                </div>
+                <div class="card expense">
+                    <h3>Pengeluaran Bulan Ini</h3>
+                    <p id="total-expense">Rp 0</p>
+                </div>
+                <div class="card">
+                    <h3>Saldo Saat Ini</h3>
+                    <p id="current-balance">Rp 0</p>
+                </div>
+            </div>
+
+            <h3>Visualisasi Pengeluaran</h3>
+            <div style="width: 100%; height: 250px; background-color: #f0f0f0; display: flex; align-items: center; justify-content: center; color: #777; border-radius: 5px; margin-bottom: 30px;">
+                Grafik akan ditampilkan di sini (membutuhkan library JS seperti Chart.js)
+            </div>
+
+            <h3>Transaksi Terbaru</h3>
+            <table id="latest-transactions-table">
+                <thead>
+                    <tr>
+                        <th>Tanggal</th>
+                        <th>Jenis</th>
+                        <th>Kategori</th>
+                        <th>Deskripsi</th>
+                        <th>Jumlah</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td colspan="5" style="text-align: center;">Memuat transaksi...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <section id="form-section" class="form-section container">
+            <h3>Catat Transaksi Baru</h3>
+            <div class="transaction-type-switcher">
+                <button id="btn-pemasukan" class="active">Pemasukan</button>
+                <button id="btn-pengeluaran">Pengeluaran</button>
+            </div>
+
+            <form id="transaction-form">
+                <input type="hidden" id="transaction-type" value="Pemasukan">
+                <div class="form-group">
+                    <label for="transaction-date">Tanggal:</label>
+                    <input type="date" id="transaction-date" required>
+                </div>
+                <div class="form-group">
+                    <label for="transaction-category">Kategori:</label>
+                    <select id="transaction-category" required>
+                        <option value="">Pilih Kategori</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="transaction-description">Deskripsi (Opsional):</label>
+                    <input type="text" id="transaction-description">
+                </div>
+                <div class="form-group">
+                    <label for="transaction-amount">Jumlah (Rp):</label>
+                    <input type="number" id="transaction-amount" placeholder="Contoh: 50000" min="0" required>
+                </div>
+                <div class="form-group">
+                    <label for="transaction-account">Akun:</label>
+                    <select id="transaction-account">
+                        <option value="Tunai">Tunai</option>
+                        <option value="Bank">Bank</option>
+                        <option value="E-Wallet">E-Wallet</option>
+                    </select>
+                </div>
+
+                <button type="submit" class="btn-submit">Simpan Transaksi</button>
+                <div id="form-message" class="message"></div>
+            </form>
+        </section>
     </div>
 
-    <!-- Tabel -->
-    <div class="card">
-      <h2>Daftar Transaksi</h2>
-      <table>
-        <thead>
-          <tr>
-            <th>Tanggal</th>
-            <th>Kategori</th>
-            <th>Jenis</th>
-            <th>Nominal</th>
-            <th>Catatan</th>
-          </tr>
-        </thead>
-        <tbody id="dataTransaksi"></tbody>
-      </table>
-    </div>
+    <footer>
+        <p>&copy; 2023 FinaKu. Dibuat dengan ❤️ untuk Keluarga Anda.</p>
+    </footer>
 
-    <!-- Grafik Pie -->
-    <div class="card">
-      <h2>Ringkasan Keuangan Bulan Ini</h2>
-      <canvas id="pieChart" height="100"></canvas>
-    </div>
+    <script async defer src="https://apis.google.com/js/api.js"></script>
 
-    <!-- Grafik Garis -->
-    <div class="card">
-      <h2>Tren Pemasukan & Pengeluaran</h2>
-      <canvas id="lineChart" height="100"></canvas>
-    </div>
-  </div>
+    <script>
+        // Konstanta (perlu Anda isi dengan CLIENT_ID dan SPREADSHEET_ID Anda)
+        // CLIENT_ID didapatkan dari Google Cloud Console (OAuth Client ID - Web Application)
+        // SPREADSHEET_ID adalah ID dari Google Sheet Anda yang akan digunakan sebagai database
+        const CLIENT_ID = 'YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com'; // Ganti dengan Client ID Anda
+        const SPREADSHEET_ID = 'YOUR_GOOGLE_SHEET_ID'; // Ganti dengan ID Google Sheet Anda
 
-  <script>
-    const API_URL = "https://script.google.com/macros/s/AKfycbyHXcwRVJLl2cblGao11JQsNnnIMl2AYFxhbfTrTwiqgiiW60_LxPzP6qLxJQY4g9dYlQ/exec"; // Ganti dengan URL Google Apps Script
+        const DISCOVERY_DOCS = ["https://sheets.googleapis.com/$discovery/rest?version=v4"];
+        const SCOPES = "https://www.googleapis.com/auth/spreadsheets"; // Scope untuk akses Google Sheets
 
-    let pieChart, lineChart;
+        // Elemen-elemen HTML
+        const authorizeButton = document.getElementById('authorize_button');
+        const signoutButton = document.getElementById('signout_button');
+        const authStatusDiv = document.getElementById('auth-status');
+        const dashboardSection = document.getElementById('dashboard-section');
+        const formSection = document.getElementById('form-section');
+        const transactionForm = document.getElementById('transaction-form');
+        const transactionTypeInput = document.getElementById('transaction-type');
+        const transactionCategorySelect = document.getElementById('transaction-category');
+        const btnPemasukan = document.getElementById('btn-pemasukan');
+        const btnPengeluaran = document.getElementById('btn-pengeluaran');
+        const formMessage = document.getElementById('form-message');
+        const totalIncomeSpan = document.getElementById('total-income');
+        const totalExpenseSpan = document.getElementById('total-expense');
+        const currentBalanceSpan = document.getElementById('current-balance');
+        const latestTransactionsTableBody = document.querySelector('#latest-transactions-table tbody');
+        const transactionDateInput = document.getElementById('transaction-date');
 
-    function formatRupiah(angka) {
-      return "Rp " + parseInt(angka).toLocaleString("id-ID");
-    }
 
-    function loadTransaksi() {
-      fetch(API_URL)
-        .then(res => res.json())
-        .then(data => {
-          let tbody = document.getElementById("dataTransaksi");
-          tbody.innerHTML = "";
-          let totalPemasukan = 0;
-          let totalPengeluaran = 0;
+        let GoogleAuth; // Objek GoogleAuth akan disimpan di sini
 
-          // Untuk grafik garis
-          let daily = {};
+        // --- Fungsionalitas Autentikasi Google ---
 
-          data.forEach(row => {
-            let nominal = Number(row.nominal);
-            if (row.jenis === "Pemasukan") {
-              totalPemasukan += nominal;
+        function handleClientLoad() {
+            gapi.load('client:auth2', initClient);
+        }
+
+        async function initClient() {
+            try {
+                await gapi.client.init({
+                    clientId: CLIENT_ID,
+                    discoveryDocs: DISCOVERY_DOCS,
+                    scope: SCOPES,
+                });
+                GoogleAuth = gapi.auth2.getAuthInstance();
+                GoogleAuth.isSignedIn.listen(updateSigninStatus);
+                updateSigninStatus(GoogleAuth.isSignedIn.get());
+            } catch (error) {
+                console.error('Error initializing Google API client', error);
+                authStatusDiv.textContent = 'Gagal menginisialisasi Google API. Cek console log. Pastikan CLIENT_ID benar.';
+                authStatusDiv.classList.add('error');
+            }
+        }
+
+        function updateSigninStatus(isSignedIn) {
+            if (isSignedIn) {
+                authorizeButton.style.display = 'none';
+                signoutButton.style.display = 'block';
+                dashboardSection.style.display = 'block';
+                formSection.style.display = 'block';
+                authStatusDiv.textContent = 'Terhubung ke Google Sheets.';
+                authStatusDiv.classList.remove('error');
+                authStatusDiv.classList.add('success');
+                // Panggil fungsi untuk memuat data dari Google Sheets
+                loadAppData();
             } else {
-              totalPengeluaran += nominal;
+                authorizeButton.style.display = 'block';
+                signoutButton.style.display = 'none';
+                dashboardSection.style.display = 'none';
+                formSection.style.display = 'none';
+                authStatusDiv.textContent = 'Silakan hubungkan akun Google Anda.';
+                authStatusDiv.classList.remove('success', 'error');
+                // Clear data jika sign out
+                totalIncomeSpan.textContent = 'Rp 0';
+                totalExpenseSpan.textContent = 'Rp 0';
+                currentBalanceSpan.textContent = 'Rp 0';
+                latestTransactionsTableBody.innerHTML = '<tr><td colspan="5" style="text-align: center;">Tidak terhubung.</td></tr>';
+                transactionCategorySelect.innerHTML = '<option value="">Pilih Kategori</option>';
             }
+        }
 
-            // simpan data per tanggal
-            if (!daily[row.tanggal]) {
-              daily[row.tanggal] = { pemasukan: 0, pengeluaran: 0 };
+        function handleAuthClick() {
+            GoogleAuth.signIn();
+        }
+
+        function handleSignoutClick() {
+            GoogleAuth.signOut();
+        }
+
+        // Event Listeners untuk tombol autentikasi
+        authorizeButton.addEventListener('click', handleAuthClick);
+        signoutButton.addEventListener('click', handleSignoutClick);
+
+        // Memuat Google API saat halaman dimuat
+        // gapi.load('client:auth2', handleClientLoad); // Ini akan dipanggil setelah Google API script di-load
+
+        // --- Fungsionalitas Aplikasi ---
+
+        // Fungsi untuk memuat data aplikasi dari Google Sheets
+        async function loadAppData() {
+            console.log('Memuat data aplikasi dari Google Sheets...');
+
+            try {
+                // 1. Membaca kategori
+                const responseCategories = await gapi.client.sheets.spreadsheets.values.get({
+                    spreadsheetId: SPREADSHEET_ID,
+                    range: 'Kategori!A:A', // Asumsi kategori ada di kolom A tab 'Kategori'
+                });
+                const categories = responseCategories.result.values ? responseCategories.result.values.flat() : [];
+                populateCategories(categories.slice(1)); // Abaikan header 'Nama Kategori'
+
+                // 2. Membaca transaksi
+                const responseTransactions = await gapi.client.sheets.spreadsheets.values.get({
+                    spreadsheetId: SPREADSHEET_ID,
+                    range: 'Transaksi!A:F', // Asumsi A: Tanggal, B: Jenis, C: Kategori, D: Deskripsi, E: Jumlah, F: Akun
+                });
+                const transactions = responseTransactions.result.values;
+                if (transactions && transactions.length > 1) { // Abaikan header
+                     updateSummaryAndTransactions(transactions.slice(1));
+                } else {
+                     latestTransactionsTableBody.innerHTML = '<tr><td colspan="5" style="text-align: center;">Belum ada transaksi.</td></tr>';
+                     totalIncomeSpan.textContent = 'Rp 0';
+                     totalExpenseSpan.textContent = 'Rp 0';
+                     currentBalanceSpan.textContent = 'Rp 0';
+                }
+
+            } catch (err) {
+                console.error('Error saat memuat data dari Google Sheets:', err);
+                authStatusDiv.textContent = 'Gagal memuat data. Pastikan ID Google Sheet benar dan Anda memiliki akses. Error: ' + (err.result?.error?.message || err.message);
+                authStatusDiv.classList.add('error');
             }
-            if (row.jenis === "Pemasukan") {
-              daily[row.tanggal].pemasukan += nominal;
-            } else {
-              daily[row.tanggal].pengeluaran += nominal;
+        }
+
+        // Fungsi untuk mengisi pilihan kategori
+        function populateCategories(categories) {
+            transactionCategorySelect.innerHTML = '<option value="">Pilih Kategori</option>'; // Reset
+            categories.forEach(category => {
+                if (category) { // Pastikan kategori tidak kosong
+                    const option = document.createElement('option');
+                    option.value = category;
+                    option.textContent = category;
+                    transactionCategorySelect.appendChild(option);
+                }
+            });
+        }
+
+        // Fungsi untuk mengupdate ringkasan dan tabel transaksi
+        function updateSummaryAndTransactions(transactions) {
+            let totalIncome = 0;
+            let totalExpense = 0;
+            latestTransactionsTableBody.innerHTML = ''; // Kosongkan tabel
+
+            // Hitung pemasukan/pengeluaran bulan ini (misal: bulan berjalan)
+            const today = new Date();
+            const currentMonth = today.getMonth();
+            const currentYear = today.getFullYear();
+
+            // Urutkan transaksi berdasarkan tanggal terbaru untuk tampilan tabel
+            transactions.sort((a, b) => new Date(b[0]) - new Date(a[0]));
+
+            transactions.forEach(row => {
+                // Pastikan struktur baris sesuai dengan yang diharapkan (minimal 5 kolom)
+                if (row.length < 5) {
+                    console.warn("Baris transaksi tidak lengkap:", row);
+                    return;
+                }
+                const [dateStr, type, category, description, amountStr] = row;
+                const amount = parseFloat(amountStr);
+                const transactionDate = new Date(dateStr);
+
+                // Cek untuk ringkasan bulan ini
+                if (transactionDate.getMonth() === currentMonth && transactionDate.getFullYear() === currentYear) {
+                    if (type === 'Pemasukan') {
+                        totalIncome += amount;
+                    } else if (type === 'Pengeluaran') {
+                        totalExpense += amount;
+                    }
+                }
+
+                // Tampilkan di tabel (ambil 10 transaksi terbaru)
+                if (latestTransactionsTableBody.children.length < 10) {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${dateStr}</td>
+                        <td>${type}</td>
+                        <td>${category}</td>
+                        <td>${description || '-'}</td>
+                        <td>Rp ${amount.toLocaleString('id-ID')}</td>
+                    `;
+                    latestTransactionsTableBody.appendChild(tr);
+                }
+            });
+
+            totalIncomeSpan.textContent = `Rp ${totalIncome.toLocaleString('id-ID')}`;
+            totalExpenseSpan.textContent = `Rp ${totalExpense.toLocaleString('id-ID')}`;
+            currentBalanceSpan.textContent = `Rp ${(totalIncome - totalExpense).toLocaleString('id-ID')}`;
+
+            if (transactions.length === 0) {
+                latestTransactionsTableBody.innerHTML = '<tr><td colspan="5" style="text-align: center;">Belum ada transaksi.</td></tr>';
             }
+        }
 
-            let badge = row.jenis === "Pemasukan" 
-                        ? `<span class="badge pemasukan">Pemasukan</span>` 
-                        : `<span class="badge pengeluaran">Pengeluaran</span>`;
-            let tr = `<tr>
-              <td>${row.tanggal}</td>
-              <td>${row.kategori}</td>
-              <td>${badge}</td>
-              <td>${formatRupiah(row.nominal)}</td>
-              <td>${row.catatan || "-"}</td>
-            </tr>`;
-            tbody.innerHTML += tr;
-          });
 
-          updatePieChart(totalPemasukan, totalPengeluaran);
-          updateLineChart(daily);
+        // Event Listeners untuk form transaksi
+        btnPemasukan.addEventListener('click', () => {
+            btnPemasukan.classList.add('active');
+            btnPengeluaran.classList.remove('active');
+            transactionTypeInput.value = 'Pemasukan';
         });
-    }
 
-    function updatePieChart(pemasukan, pengeluaran) {
-      const ctx = document.getElementById("pieChart").getContext("2d");
+        btnPengeluaran.addEventListener('click', () => {
+            btnPengeluaran.classList.add('active');
+            btnPemasukan.classList.remove('active');
+            transactionTypeInput.value = 'Pengeluaran';
+        });
 
-      if (pieChart) pieChart.destroy();
+        transactionForm.addEventListener('submit', async (event) => {
+            event.preventDefault(); // Mencegah refresh halaman
 
-      pieChart = new Chart(ctx, {
-        type: "pie",
-        data: {
-          labels: ["Pemasukan", "Pengeluaran"],
-          datasets: [{
-            data: [pemasukan, pengeluaran],
-            backgroundColor: ["#2ecc71", "#e74c3c"]
-          }]
-        },
-        options: {
-          responsive: true,
-          plugins: {
-            legend: { position: "bottom" },
-            tooltip: {
-              callbacks: {
-                label: function(context) {
-                  let value = context.raw;
-                  return context.label + ": " + formatRupiah(value);
-                }
-              }
+            const date = transactionDateInput.value;
+            const type = transactionTypeInput.value;
+            const category = transactionCategorySelect.value;
+            const description = document.getElementById('transaction-description').value;
+            const amount = document.getElementById('transaction-amount').value;
+            const account = document.getElementById('transaction-account').value;
+
+            if (!date || !type || !category || !amount || !account) {
+                showMessage('Semua kolom wajib diisi kecuali deskripsi!', 'error');
+                return;
             }
-          }
+
+            const transactionData = [
+                date,
+                type,
+                category,
+                description,
+                parseFloat(amount),
+                account,
+                // Tambahkan kolom lain jika diperlukan, misal: Anggota Keluarga
+            ];
+
+            try {
+                const response = await gapi.client.sheets.spreadsheets.values.append({
+                    spreadsheetId: SPREADSHEET_ID,
+                    range: 'Transaksi!A:F', // Sesuaikan range kolom di Google Sheet Anda
+                    valueInputOption: 'USER_ENTERED', // Mengizinkan Google memformat angka/tanggal
+                    insertDataOption: 'INSERT_ROWS', // Memastikan baris baru ditambahkan
+                    resource: {
+                        values: [transactionData],
+                    },
+                });
+
+                console.log('Transaksi berhasil disimpan:', response);
+                showMessage('Transaksi berhasil disimpan!', 'success');
+                transactionForm.reset(); // Reset form
+                transactionDateInput.valueAsDate = new Date(); // Set tanggal ke hari ini
+                loadAppData(); // Muat ulang data untuk update dashboard dan tabel
+
+            } catch (err) {
+                console.error('Error saat menyimpan transaksi:', err);
+                const errorMessage = err.result?.error?.message || err.message || "Terjadi kesalahan tidak diketahui.";
+                showMessage('Gagal menyimpan transaksi: ' + errorMessage, 'error');
+            }
+        });
+
+        function showMessage(msg, type) {
+            formMessage.textContent = msg;
+            formMessage.className = `message ${type}`;
+            formMessage.style.display = 'block';
+            setTimeout(() => {
+                formMessage.style.display = 'none';
+            }, 5000); // Pesan akan hilang setelah 5 detik
         }
-      });
-    }
 
-    function updateLineChart(dailyData) {
-      const ctx = document.getElementById("lineChart").getContext("2d");
+        // Inisialisasi tanggal input menjadi hari ini saat DOM dimuat
+        document.addEventListener('DOMContentLoaded', () => {
+            transactionDateInput.valueAsDate = new Date();
+        });
 
-      if (lineChart) lineChart.destroy();
-
-      let labels = Object.keys(dailyData).sort();
-      let pemasukanData = labels.map(t => dailyData[t].pemasukan);
-      let pengeluaranData = labels.map(t => dailyData[t].pengeluaran);
-
-      lineChart = new Chart(ctx, {
-        type: "line",
-        data: {
-          labels: labels,
-          datasets: [
-            {
-              label: "Pemasukan",
-              data: pemasukanData,
-              borderColor: "#2ecc71",
-              fill: false,
-              tension: 0.3
-            },
-            {
-              label: "Pengeluaran",
-              data: pengeluaranData,
-              borderColor: "#e74c3c",
-              fill: false,
-              tension: 0.3
-            }
-          ]
-        },
-        options: {
-          responsive: true,
-          plugins: {
-            tooltip: {
-              callbacks: {
-                label: function(context) {
-                  return context.dataset.label + ": " + formatRupiah(context.raw);
-                }
-              }
-            }
-          },
-          scales: {
-            y: {
-              beginAtZero: true,
-              ticks: {
-                callback: function(value) {
-                  return "Rp " + value.toLocaleString("id-ID");
-                }
-              }
-            }
-          }
-        }
-      });
-    }
-
-    document.getElementById("transaksiForm").addEventListener("submit", function(e) {
-      e.preventDefault();
-      let data = Object.fromEntries(new FormData(e.target));
-      fetch(API_URL, {
-        method: "POST",
-        body: JSON.stringify(data)
-      })
-      .then(res => res.text())
-      .then(msg => {
-        alert(msg);
-        e.target.reset();
-        loadTransaksi();
-      });
-    });
-
-    loadTransaksi();
-  </script>
+        // Pastikan Google API client dimuat sebelum menginisialisasi client kita
+        // gapi.load() dipanggil oleh script eksternal, kita hanya perlu memastikan initClient dipanggil setelahnya.
+        // Fungsi handleClientLoad sudah dipanggil oleh tag <script async defer src="...">
+    </script>
 </body>
 </html>
