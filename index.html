@@ -3,586 +3,595 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FinaKu - Keuangan Keluarga (Single File)</title>
+    <title>Aura Finance - Pengelola Dana Keluarga</title>
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Chart.js CDN for data visualization -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Phosphor Icons for a modern icon set -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    
+    <!-- Custom CSS for futuristic theme -->
     <style>
-        /* CSS Dasar untuk tampilan yang rapi */
+        :root {
+            --bg-primary: #0a0a0f;
+            --bg-secondary: #1a1a2e;
+            --bg-glass: rgba(26, 26, 46, 0.6);
+            --border-color: rgba(68, 85, 129, 0.5);
+            --accent-primary: #00ffff; /* Cyan */
+            --accent-secondary: #ff00ff; /* Magenta */
+            --text-primary: #e0e0e0;
+            --text-secondary: #a0a0c0;
+        }
+
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            margin: 0;
-            padding: 20px;
-            background-color: #f4f7f6;
-            color: #333;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            min-height: 100vh;
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            background-image:
+                radial-gradient(circle at 1% 1%, var(--bg-secondary) 1px, transparent 1px),
+                radial-gradient(circle at 99% 99%, var(--bg-secondary) 1px, transparent 1px);
+            background-size: 50px 50px;
         }
-        .container {
-            background-color: #ffffff;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-            padding: 30px;
-            width: 100%;
-            max-width: 900px;
-            margin-bottom: 20px;
-        }
-        h1, h2, h3 {
-            color: #2c3e50;
-            text-align: center;
-            margin-bottom: 25px;
-        }
-        .auth-section {
-            text-align: center;
-            margin-bottom: 30px;
-        }
-        .auth-section button {
-            background-color: #4285F4; /* Google Blue */
-            color: white;
-            border: none;
-            padding: 12px 25px;
-            border-radius: 5px;
-            font-size: 16px;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto;
-        }
-        .auth-section button:hover {
-            background-color: #3367D6;
-        }
-        .auth-section button img {
-            margin-right: 10px;
-            height: 20px;
-            width: 20px;
-        }
-        .dashboard-section, .form-section {
-            display: none; /* Akan ditampilkan oleh JS setelah autentikasi */
-        }
-        .summary-cards {
-            display: flex;
-            justify-content: space-around;
-            flex-wrap: wrap;
-            margin-bottom: 30px;
-        }
-        .card {
-            background-color: #e0f2f7; /* Light Blue */
-            padding: 20px;
-            border-radius: 6px;
-            text-align: center;
-            margin: 10px;
-            flex: 1;
-            min-width: 200px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-        }
-        .card.income { background-color: #d4edda; } /* Light Green */
-        .card.expense { background-color: #f8d7da; } /* Light Red */
-        .card h3 {
-            margin-top: 0;
-            font-size: 1.2em;
-            color: #2c3e50;
-        }
-        .card p {
-            font-size: 1.8em;
-            font-weight: bold;
-            color: #007bff; /* Primary Blue */
-            margin: 5px 0 0;
-        }
-        .card.income p { color: #28a745; }
-        .card.expense p { color: #dc3545; }
 
-        .form-group {
-            margin-bottom: 15px;
+        .glass-card {
+            background: var(--bg-glass);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid var(--border-color);
+            border-radius: 1.5rem; /* More rounded corners */
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
         }
-        .form-group label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
-            color: #555;
-        }
-        .form-group input[type="text"],
-        .form-group input[type="number"],
-        .form-group input[type="date"],
-        .form-group select {
-            width: calc(100% - 20px);
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            box-sizing: border-box;
-            font-size: 1em;
-        }
-        .transaction-type-switcher {
-            display: flex;
-            margin-bottom: 20px;
-            border: 1px solid #007bff;
-            border-radius: 5px;
-            overflow: hidden;
-            width: fit-content;
-            margin-left: auto;
-            margin-right: auto;
-        }
-        .transaction-type-switcher button {
-            flex: 1;
-            padding: 10px 20px;
-            border: none;
-            background-color: #f0f8ff;
-            color: #007bff;
-            font-size: 1em;
-            cursor: pointer;
-            transition: background-color 0.3s ease, color 0.3s ease;
-        }
-        .transaction-type-switcher button.active {
-            background-color: #007bff;
-            color: white;
-        }
-        .transaction-type-switcher button:first-child { border-right: 1px solid #007bff; }
 
+        .neon-glow {
+            transition: all 0.3s ease-in-out;
+        }
 
-        .btn-submit {
-            background-color: #28a745;
-            color: white;
-            border: none;
-            padding: 12px 25px;
-            border-radius: 5px;
-            font-size: 16px;
-            cursor: pointer;
-            width: 100%;
-            transition: background-color 0.3s ease;
+        .neon-glow-cyan {
+            box-shadow: 0 0 5px var(--accent-primary), 0 0 10px var(--accent-primary);
         }
-        .btn-submit:hover {
-            background-color: #218838;
+
+        .neon-text-cyan {
+            text-shadow: 0 0 3px var(--accent-primary), 0 0 5px var(--accent-primary);
         }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
+
+        .neon-text-magenta {
+             text-shadow: 0 0 3px var(--accent-secondary), 0 0 5px var(--accent-secondary);
         }
-        table th, table td {
-            border: 1px solid #eee;
-            padding: 12px 15px;
-            text-align: left;
-            font-size: 0.95em;
+        
+        .tab-btn.active {
+            background-color: var(--accent-primary);
+            color: var(--bg-primary);
+            box-shadow: 0 0 10px var(--accent-primary), 0 0 20px var(--accent-primary);
         }
-        table th {
-            background-color: #f2f2f2;
-            font-weight: bold;
-            color: #555;
+
+        .btn-primary {
+            background: linear-gradient(45deg, var(--accent-primary), var(--accent-secondary));
+            transition: all 0.3s ease;
+            box-shadow: 0 0 10px rgba(0, 255, 255, 0.5), 0 0 10px rgba(255, 0, 255, 0.5);
         }
-        table tr:nth-child(even) {
-            background-color: #f9f9f9;
+
+        .btn-primary:hover {
+            transform: translateY(-2px) scale(1.05);
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.7), 0 0 20px rgba(255, 0, 255, 0.7);
         }
-        .message {
-            margin-top: 15px;
-            padding: 10px;
-            border-radius: 5px;
-            display: none;
+        
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
         }
-        .message.success {
-            background-color: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
+        ::-webkit-scrollbar-track {
+            background: var(--bg-primary);
         }
-        .message.error {
-            background-color: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
+        ::-webkit-scrollbar-thumb {
+            background-color: var(--accent-primary);
+            border-radius: 10px;
+            border: 2px solid var(--bg-primary);
         }
-        footer {
-            margin-top: 40px;
-            text-align: center;
-            color: #777;
-            font-size: 0.9em;
+        ::-webkit-scrollbar-thumb:hover {
+            background-color: var(--accent-secondary);
+        }
+
+        /* Chart.js tooltip styling */
+        .chartjs-tooltip {
+            background: var(--bg-glass) !important;
+            border: 1px solid var(--border-color) !important;
         }
     </style>
 </head>
-<body>
+<body class="antialiased min-h-screen p-4 sm:p-6 lg:p-8">
 
-    <div class="container">
-        <h1>FinaKu</h1>
-        <h2>Kelola Keuangan Keluarga Anda</h2>
-
-        <section id="auth-section" class="auth-section">
-            <p>Hubungkan akun Google Anda untuk memulai. Data Anda akan disimpan di Google Sheets pribadi Anda.</p>
-            <button id="authorize_button">
-                <img src="https://drive.google.com/file/d/1fS9zkW8g19d4eEyIU23BzxH_h10kU-UG/view?usp=sharing" alt="Google icon">
-                Hubungkan ke Google Sheets
-            </button>
-            <button id="signout_button" style="display: none;">Sign Out</button>
-            <p id="auth-status"></p>
-        </section>
-
-        <section id="dashboard-section" class="dashboard-section">
-            <h3>Ringkasan Keuangan</h3>
-            <div class="summary-cards">
-                <div class="card income">
-                    <h3>Pemasukan Bulan Ini</h3>
-                    <p id="total-income">Rp 0</p>
-                </div>
-                <div class="card expense">
-                    <h3>Pengeluaran Bulan Ini</h3>
-                    <p id="total-expense">Rp 0</p>
-                </div>
-                <div class="card">
-                    <h3>Saldo Saat Ini</h3>
-                    <p id="current-balance">Rp 0</p>
-                </div>
+    <div class="max-w-7xl mx-auto">
+        <!-- Header -->
+        <header class="flex flex-col sm:flex-row justify-between items-center mb-8">
+            <div class="flex items-center space-x-3 mb-4 sm:mb-0">
+                <i class="ph-duotone ph-atom text-5xl text-cyan-300 neon-text-cyan"></i>
+                <h1 class="text-3xl font-bold tracking-wider neon-text-cyan">Aura<span class="text-magenta-400 neon-text-magenta">Finance</span></h1>
             </div>
+            <div id="dateTime" class="text-sm text-gray-400"></div>
+        </header>
 
-            <h3>Visualisasi Pengeluaran</h3>
-            <div style="width: 100%; height: 250px; background-color: #f0f0f0; display: flex; align-items: center; justify-content: center; color: #777; border-radius: 5px; margin-bottom: 30px;">
-                Grafik akan ditampilkan di sini (membutuhkan library JS seperti Chart.js)
-            </div>
+        <main class="grid grid-cols-12 gap-6">
+            <!-- Sidebar / Navigation -->
+            <aside class="col-span-12 lg:col-span-3">
+                <div class="glass-card p-6 space-y-4">
+                    <h2 class="text-lg font-semibold text-gray-300 mb-4">Menu</h2>
+                    <nav class="space-y-2">
+                        <button onclick="showTab('dashboard')" class="tab-btn w-full flex items-center space-x-3 p-3 rounded-lg transition-all duration-300 hover:bg-cyan-500/20 active">
+                            <i class="ph ph-house text-xl"></i>
+                            <span>Dasbor</span>
+                        </button>
+                        <button onclick="showTab('transactions')" class="tab-btn w-full flex items-center space-x-3 p-3 rounded-lg transition-all duration-300 hover:bg-cyan-500/20">
+                            <i class="ph ph-arrows-left-right text-xl"></i>
+                            <span>Transaksi</span>
+                        </button>
+                        <button onclick="showTab('budget')" class="tab-btn w-full flex items-center space-x-3 p-3 rounded-lg transition-all duration-300 hover:bg-cyan-500/20">
+                            <i class="ph ph-target text-xl"></i>
+                            <span>Anggaran</span>
+                        </button>
+                        <button onclick="showTab('reports')" class="tab-btn w-full flex items-center space-x-3 p-3 rounded-lg transition-all duration-300 hover:bg-cyan-500/20">
+                            <i class="ph ph-chart-pie-slice text-xl"></i>
+                            <span>Laporan</span>
+                        </button>
+                    </nav>
+                </div>
+            </aside>
 
-            <h3>Transaksi Terbaru</h3>
-            <table id="latest-transactions-table">
-                <thead>
-                    <tr>
-                        <th>Tanggal</th>
-                        <th>Jenis</th>
-                        <th>Kategori</th>
-                        <th>Deskripsi</th>
-                        <th>Jumlah</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td colspan="5" style="text-align: center;">Memuat transaksi...</td>
-                    </tr>
-                </tbody>
-            </table>
-        </section>
+            <!-- Main Content -->
+            <section class="col-span-12 lg:col-span-9 space-y-6">
+                <!-- Dashboard Tab -->
+                <div id="dashboard" class="tab-content space-y-6">
+                    <!-- Summary Cards -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div class="glass-card p-6 flex flex-col justify-between">
+                            <div class="flex justify-between items-start">
+                                <h3 class="font-semibold text-gray-300">Total Saldo</h3>
+                                <i class="ph-duotone ph-wallet text-3xl text-cyan-400"></i>
+                            </div>
+                            <p id="totalBalance" class="text-3xl font-bold mt-4 neon-text-cyan">Rp 0</p>
+                        </div>
+                        <div class="glass-card p-6 flex flex-col justify-between">
+                            <div class="flex justify-between items-start">
+                                <h3 class="font-semibold text-gray-300">Total Pemasukan</h3>
+                                <i class="ph-duotone ph-arrow-circle-down text-3xl text-green-400"></i>
+                            </div>
+                            <p id="totalIncome" class="text-3xl font-bold mt-4 text-green-400">Rp 0</p>
+                        </div>
+                        <div class="glass-card p-6 flex flex-col justify-between">
+                            <div class="flex justify-between items-start">
+                                <h3 class="font-semibold text-gray-300">Total Pengeluaran</h3>
+                                <i class="ph-duotone ph-arrow-circle-up text-3xl text-red-400"></i>
+                            </div>
+                            <p id="totalExpense" class="text-3xl font-bold mt-4 text-red-400">Rp 0</p>
+                        </div>
+                    </div>
 
-        <section id="form-section" class="form-section container">
-            <h3>Catat Transaksi Baru</h3>
-            <div class="transaction-type-switcher">
-                <button id="btn-pemasukan" class="active">Pemasukan</button>
-                <button id="btn-pengeluaran">Pengeluaran</button>
-            </div>
-
-            <form id="transaction-form">
-                <input type="hidden" id="transaction-type" value="Pemasukan">
-                <div class="form-group">
-                    <label for="transaction-date">Tanggal:</label>
-                    <input type="date" id="transaction-date" required>
-                </div>
-                <div class="form-group">
-                    <label for="transaction-category">Kategori:</label>
-                    <select id="transaction-category" required>
-                        <option value="">Pilih Kategori</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="transaction-description">Deskripsi (Opsional):</label>
-                    <input type="text" id="transaction-description">
-                </div>
-                <div class="form-group">
-                    <label for="transaction-amount">Jumlah (Rp):</label>
-                    <input type="number" id="transaction-amount" placeholder="Contoh: 50000" min="0" required>
-                </div>
-                <div class="form-group">
-                    <label for="transaction-account">Akun:</label>
-                    <select id="transaction-account">
-                        <option value="Tunai">Tunai</option>
-                        <option value="Bank">Bank</option>
-                        <option value="E-Wallet">E-Wallet</option>
-                    </select>
+                    <!-- Charts -->
+                    <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
+                        <div class="glass-card p-6">
+                            <h3 class="font-semibold text-gray-300 mb-4">Ikhtisar Arus Kas</h3>
+                            <canvas id="flowChart"></canvas>
+                        </div>
+                        <div class="glass-card p-6">
+                            <h3 class="font-semibold text-gray-300 mb-4">Pengeluaran per Kategori</h3>
+                            <canvas id="categoryChart"></canvas>
+                        </div>
+                    </div>
+                     <!-- Recent Transactions -->
+                    <div class="glass-card p-6">
+                        <h3 class="font-semibold text-gray-300 mb-4">Transaksi Terakhir</h3>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left">
+                                <thead class="border-b border-gray-600">
+                                    <tr>
+                                        <th class="p-3">Tanggal</th>
+                                        <th class="p-3">Deskripsi</th>
+                                        <th class="p-3">Kategori</th>
+                                        <th class="p-3 text-right">Jumlah</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="recentTransactionsList">
+                                    <!-- Dynamic content here -->
+                                    <tr><td colspan="4" class="text-center p-4 text-gray-400">Belum ada transaksi.</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
 
-                <button type="submit" class="btn-submit">Simpan Transaksi</button>
-                <div id="form-message" class="message"></div>
-            </form>
-        </section>
+                <!-- Transactions Tab -->
+                <div id="transactions" class="tab-content hidden space-y-6">
+                    <div class="glass-card p-6">
+                        <h2 class="text-xl font-bold mb-4 neon-text-cyan">Tambah Transaksi Baru</h2>
+                        <form id="transactionForm" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label for="tr-type" class="block text-sm font-medium text-gray-400 mb-1">Tipe</label>
+                                <select id="tr-type" class="w-full bg-gray-900/50 border border-gray-600 rounded-lg px-3 py-2 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition">
+                                    <option value="income">Pemasukan</option>
+                                    <option value="expense">Pengeluaran</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="tr-amount" class="block text-sm font-medium text-gray-400 mb-1">Jumlah (Rp)</label>
+                                <input type="number" id="tr-amount" placeholder="50000" required class="w-full bg-gray-900/50 border border-gray-600 rounded-lg px-3 py-2 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition">
+                            </div>
+                            <div class="md:col-span-2">
+                                <label for="tr-description" class="block text-sm font-medium text-gray-400 mb-1">Deskripsi</label>
+                                <input type="text" id="tr-description" placeholder="Beli Kopi" required class="w-full bg-gray-900/50 border border-gray-600 rounded-lg px-3 py-2 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition">
+                            </div>
+                            <div>
+                                <label for="tr-category" class="block text-sm font-medium text-gray-400 mb-1">Kategori</label>
+                                <select id="tr-category" class="w-full bg-gray-900/50 border border-gray-600 rounded-lg px-3 py-2 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition">
+                                    <option>Makanan</option>
+                                    <option>Transportasi</option>
+                                    <option>Tagihan</option>
+                                    <option>Hiburan</option>
+                                    <option>Gaji</option>
+                                    <option>Lainnya</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="tr-date" class="block text-sm font-medium text-gray-400 mb-1">Tanggal</label>
+                                <input type="date" id="tr-date" required class="w-full bg-gray-900/50 border border-gray-600 rounded-lg px-3 py-2 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition">
+                            </div>
+                            <div class="md:col-span-2 text-right">
+                                <button type="submit" class="btn-primary font-bold py-2 px-6 rounded-lg">
+                                    Simpan Transaksi
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="glass-card p-6">
+                        <h2 class="text-xl font-bold mb-4 neon-text-cyan">Riwayat Transaksi</h2>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left">
+                                <thead class="border-b border-gray-600">
+                                    <tr>
+                                        <th class="p-3">Tanggal</th>
+                                        <th class="p-3">Deskripsi</th>
+                                        <th class="p-3">Kategori</th>
+                                        <th class="p-3 text-right">Jumlah</th>
+                                        <th class="p-3 text-center">Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="fullTransactionsList">
+                                    <!-- Dynamic content here -->
+                                    <tr><td colspan="5" class="text-center p-4 text-gray-400">Belum ada transaksi.</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Budget Tab -->
+                <div id="budget" class="tab-content hidden space-y-6">
+                    <div class="glass-card p-6">
+                        <h2 class="text-xl font-bold mb-4 neon-text-cyan">Anggaran Bulanan</h2>
+                        <div id="budgetList" class="space-y-4">
+                           <!-- JS will populate this -->
+                           <p class="text-gray-400">Anggaran belum diatur.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Reports Tab -->
+                <div id="reports" class="tab-content hidden space-y-6">
+                    <div class="glass-card p-6">
+                        <h2 class="text-xl font-bold mb-4 neon-text-cyan">Laporan Keuangan</h2>
+                        <p class="text-gray-400">Fitur laporan detail akan segera hadir. Saat ini, silakan lihat grafik di dasbor.</p>
+                        <!-- Future report elements can go here -->
+                    </div>
+                </div>
+
+            </section>
+        </main>
     </div>
 
-    <footer>
-        <p>&copy; 2023 FinaKu. Dibuat dengan ❤️ untuk Keluarga Anda.</p>
-    </footer>
+<script>
+    // --- State Management ---
+    let transactions = JSON.parse(localStorage.getItem('transactions')) || [];
+    let budgets = JSON.parse(localStorage.getItem('budgets')) || [
+        { category: 'Makanan', allocated: 500000, spent: 0 },
+        { category: 'Transportasi', allocated: 300000, spent: 0 },
+        { category: 'Tagihan', allocated: 750000, spent: 0 },
+        { category: 'Hiburan', allocated: 250000, spent: 0 },
+    ];
 
-    <script async defer src="https://apis.google.com/js/api.js"></script>
+    // --- Chart instances ---
+    let flowChartInstance;
+    let categoryChartInstance;
 
-    <script>
-        // Konstanta (perlu Anda isi dengan CLIENT_ID dan SPREADSHEET_ID Anda)
-        // CLIENT_ID didapatkan dari Google Cloud Console (OAuth Client ID - Web Application)
-        // SPREADSHEET_ID adalah ID dari Google Sheet Anda yang akan digunakan sebagai database
-        const CLIENT_ID = '618687008901-pvsue55sdsh8e958c4f5i8lds9l3mi4m.apps.googleusercontent.com'; // Ganti dengan Client ID Anda
-        const SPREADSHEET_ID = '177_7yrjGzE7nxjBfZHubfBWNNPTtsZbWhTH9XsPqEtg/edit?gid=476056447'; // Ganti dengan ID Google Sheet Anda
+    // --- Utility Functions ---
+    const formatCurrency = (amount) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(amount);
+    const formatDate = (dateString) => new Date(dateString).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
 
-        const DISCOVERY_DOCS = ["https://sheets.googleapis.com/$discovery/rest?version=v4"];
-        const SCOPES = "https://www.googleapis.com/auth/spreadsheets"; // Scope untuk akses Google Sheets
+    // --- UI Navigation ---
+    const tabs = document.querySelectorAll('.tab-content');
+    const tabBtns = document.querySelectorAll('.tab-btn');
 
-        // Elemen-elemen HTML
-        const authorizeButton = document.getElementById('authorize_button');
-        const signoutButton = document.getElementById('signout_button');
-        const authStatusDiv = document.getElementById('auth-status');
-        const dashboardSection = document.getElementById('dashboard-section');
-        const formSection = document.getElementById('form-section');
-        const transactionForm = document.getElementById('transaction-form');
-        const transactionTypeInput = document.getElementById('transaction-type');
-        const transactionCategorySelect = document.getElementById('transaction-category');
-        const btnPemasukan = document.getElementById('btn-pemasukan');
-        const btnPengeluaran = document.getElementById('btn-pengeluaran');
-        const formMessage = document.getElementById('form-message');
-        const totalIncomeSpan = document.getElementById('total-income');
-        const totalExpenseSpan = document.getElementById('total-expense');
-        const currentBalanceSpan = document.getElementById('current-balance');
-        const latestTransactionsTableBody = document.querySelector('#latest-transactions-table tbody');
-        const transactionDateInput = document.getElementById('transaction-date');
+    function showTab(tabId) {
+        tabs.forEach(tab => tab.classList.add('hidden'));
+        document.getElementById(tabId).classList.remove('hidden');
 
+        tabBtns.forEach(btn => btn.classList.remove('active'));
+        document.querySelector(`button[onclick="showTab('${tabId}')"]`).classList.add('active');
+    }
 
-        let GoogleAuth; // Objek GoogleAuth akan disimpan di sini
+    // --- Core Logic ---
+    function addTransaction(e) {
+        e.preventDefault();
+        const type = document.getElementById('tr-type').value;
+        const amount = parseFloat(document.getElementById('tr-amount').value);
+        const description = document.getElementById('tr-description').value;
+        const category = document.getElementById('tr-category').value;
+        const date = document.getElementById('tr-date').value;
 
-        // --- Fungsionalitas Autentikasi Google ---
-
-        function handleClientLoad() {
-            gapi.load('client:auth2', initClient);
+        if (!amount || !description || !date) {
+            alert('Harap isi semua kolom.');
+            return;
         }
 
-        async function initClient() {
-            try {
-                await gapi.client.init({
-                    clientId: CLIENT_ID,
-                    discoveryDocs: DISCOVERY_DOCS,
-                    scope: SCOPES,
-                });
-                GoogleAuth = gapi.auth2.getAuthInstance();
-                GoogleAuth.isSignedIn.listen(updateSigninStatus);
-                updateSigninStatus(GoogleAuth.isSignedIn.get());
-            } catch (error) {
-                console.error('Error initializing Google API client', error);
-                authStatusDiv.textContent = 'Gagal menginisialisasi Google API. Cek console log. Pastikan CLIENT_ID benar.';
-                authStatusDiv.classList.add('error');
-            }
+        const newTransaction = {
+            id: Date.now(),
+            type,
+            amount,
+            description,
+            category,
+            date,
+        };
+
+        transactions.push(newTransaction);
+        saveAndRerender();
+        document.getElementById('transactionForm').reset();
+        showTab('dashboard'); // Switch to dashboard to see update
+    }
+
+    function deleteTransaction(id) {
+        if (confirm('Apakah Anda yakin ingin menghapus transaksi ini?')) {
+            transactions = transactions.filter(tr => tr.id !== id);
+            saveAndRerender();
+        }
+    }
+    
+    // --- Rendering Functions ---
+    function renderSummary() {
+        const totalIncome = transactions.filter(t => t.type === 'income').reduce((sum, t) => sum + t.amount, 0);
+        const totalExpense = transactions.filter(t => t.type === 'expense').reduce((sum, t) => sum + t.amount, 0);
+        const totalBalance = totalIncome - totalExpense;
+
+        document.getElementById('totalBalance').textContent = formatCurrency(totalBalance);
+        document.getElementById('totalIncome').textContent = formatCurrency(totalIncome);
+        document.getElementById('totalExpense').textContent = formatCurrency(totalExpense);
+    }
+    
+    function renderRecentTransactions() {
+        const list = document.getElementById('recentTransactionsList');
+        list.innerHTML = '';
+        const recent = [...transactions].sort((a,b) => new Date(b.date) - new Date(a.date)).slice(0, 5);
+
+        if (recent.length === 0) {
+            list.innerHTML = '<tr><td colspan="4" class="text-center p-4 text-gray-400">Belum ada transaksi.</td></tr>';
+            return;
         }
 
-        function updateSigninStatus(isSignedIn) {
-            if (isSignedIn) {
-                authorizeButton.style.display = 'none';
-                signoutButton.style.display = 'block';
-                dashboardSection.style.display = 'block';
-                formSection.style.display = 'block';
-                authStatusDiv.textContent = 'Terhubung ke Google Sheets.';
-                authStatusDiv.classList.remove('error');
-                authStatusDiv.classList.add('success');
-                // Panggil fungsi untuk memuat data dari Google Sheets
-                loadAppData();
+        recent.forEach(tr => {
+            const row = document.createElement('tr');
+            row.className = `border-b border-gray-700/50 ${tr.type === 'income' ? 'hover:bg-green-500/10' : 'hover:bg-red-500/10'}`;
+            row.innerHTML = `
+                <td class="p-3 text-gray-400">${formatDate(tr.date)}</td>
+                <td class="p-3">${tr.description}</td>
+                <td class="p-3 text-gray-400">${tr.category}</td>
+                <td class="p-3 text-right font-semibold ${tr.type === 'income' ? 'text-green-400' : 'text-red-400'}">
+                    ${tr.type === 'income' ? '+' : '-'} ${formatCurrency(tr.amount)}
+                </td>
+            `;
+            list.appendChild(row);
+        });
+    }
+
+    function renderAllTransactions() {
+        const list = document.getElementById('fullTransactionsList');
+        list.innerHTML = '';
+        const allSorted = [...transactions].sort((a, b) => new Date(b.date) - new Date(a.date));
+
+        if (allSorted.length === 0) {
+            list.innerHTML = '<tr><td colspan="5" class="text-center p-4 text-gray-400">Belum ada transaksi.</td></tr>';
+            return;
+        }
+
+        allSorted.forEach(tr => {
+            const row = document.createElement('tr');
+            row.className = `border-b border-gray-700/50 ${tr.type === 'income' ? 'hover:bg-green-500/10' : 'hover:bg-red-500/10'}`;
+            row.innerHTML = `
+                <td class="p-3 text-gray-400">${formatDate(tr.date)}</td>
+                <td class="p-3">${tr.description}</td>
+                <td class="p-3 text-gray-400">${tr.category}</td>
+                <td class="p-3 text-right font-semibold ${tr.type === 'income' ? 'text-green-400' : 'text-red-400'}">
+                    ${tr.type === 'income' ? '+' : '-'} ${formatCurrency(tr.amount)}
+                </td>
+                <td class="p-3 text-center">
+                    <button onclick="deleteTransaction(${tr.id})" class="text-red-400 hover:text-red-200 transition">
+                        <i class="ph ph-trash"></i>
+                    </button>
+                </td>
+            `;
+            list.appendChild(row);
+        });
+    }
+    
+    function renderBudgets() {
+        // First, calculate current spending per budget category
+        budgets.forEach(budget => {
+            budget.spent = transactions
+                .filter(tr => tr.type === 'expense' && tr.category === budget.category)
+                .reduce((sum, tr) => sum + tr.amount, 0);
+        });
+
+        const budgetContainer = document.getElementById('budgetList');
+        budgetContainer.innerHTML = '';
+        
+        if (budgets.length === 0) {
+            budgetContainer.innerHTML = '<p class="text-gray-400">Anggaran belum diatur.</p>';
+            return;
+        }
+
+        budgets.forEach(budget => {
+            const percentage = (budget.spent / budget.allocated) * 100;
+            const progressColor = percentage > 100 ? 'bg-red-500' : (percentage > 75 ? 'bg-yellow-500' : 'bg-cyan-500');
+
+            const budgetEl = document.createElement('div');
+            budgetEl.innerHTML = `
+                <div class="flex justify-between items-center mb-1">
+                    <span class="font-medium">${budget.category}</span>
+                    <span class="text-sm text-gray-400">${formatCurrency(budget.spent)} / ${formatCurrency(budget.allocated)}</span>
+                </div>
+                <div class="w-full bg-gray-700 rounded-full h-2.5">
+                    <div class="${progressColor} h-2.5 rounded-full" style="width: ${Math.min(percentage, 100)}%"></div>
+                </div>
+                ${percentage > 100 ? `<p class="text-xs text-red-400 mt-1">Melebihi anggaran sebesar ${formatCurrency(budget.spent - budget.allocated)}!</p>` : ''}
+            `;
+            budgetContainer.appendChild(budgetEl);
+        });
+    }
+
+    function renderCharts() {
+        const ctxFlow = document.getElementById('flowChart').getContext('2d');
+        const ctxCategory = document.getElementById('categoryChart').getContext('2d');
+
+        // Data for Income vs Expense Chart
+        const labels = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+        const incomeData = Array(12).fill(0);
+        const expenseData = Array(12).fill(0);
+
+        transactions.forEach(tr => {
+            const month = new Date(tr.date).getMonth();
+            if (tr.type === 'income') {
+                incomeData[month] += tr.amount;
             } else {
-                authorizeButton.style.display = 'block';
-                signoutButton.style.display = 'none';
-                dashboardSection.style.display = 'none';
-                formSection.style.display = 'none';
-                authStatusDiv.textContent = 'Silakan hubungkan akun Google Anda.';
-                authStatusDiv.classList.remove('success', 'error');
-                // Clear data jika sign out
-                totalIncomeSpan.textContent = 'Rp 0';
-                totalExpenseSpan.textContent = 'Rp 0';
-                currentBalanceSpan.textContent = 'Rp 0';
-                latestTransactionsTableBody.innerHTML = '<tr><td colspan="5" style="text-align: center;">Tidak terhubung.</td></tr>';
-                transactionCategorySelect.innerHTML = '<option value="">Pilih Kategori</option>';
+                expenseData[month] += tr.amount;
             }
-        }
+        });
+        
+        // Data for Category Doughnut Chart
+        const expenseByCategory = transactions
+            .filter(t => t.type === 'expense')
+            .reduce((acc, t) => {
+                acc[t.category] = (acc[t.category] || 0) + t.amount;
+                return acc;
+            }, {});
 
-        function handleAuthClick() {
-            GoogleAuth.signIn();
-        }
+        const categoryLabels = Object.keys(expenseByCategory);
+        const categoryData = Object.values(expenseByCategory);
 
-        function handleSignoutClick() {
-            GoogleAuth.signOut();
-        }
+        // Destroy previous chart instances if they exist
+        if (flowChartInstance) flowChartInstance.destroy();
+        if (categoryChartInstance) categoryChartInstance.destroy();
 
-        // Event Listeners untuk tombol autentikasi
-        authorizeButton.addEventListener('click', handleAuthClick);
-        signoutButton.addEventListener('click', handleSignoutClick);
-
-        // Memuat Google API saat halaman dimuat
-        // gapi.load('client:auth2', handleClientLoad); // Ini akan dipanggil setelah Google API script di-load
-
-        // --- Fungsionalitas Aplikasi ---
-
-        // Fungsi untuk memuat data aplikasi dari Google Sheets
-        async function loadAppData() {
-            console.log('Memuat data aplikasi dari Google Sheets...');
-
-            try {
-                // 1. Membaca kategori
-                const responseCategories = await gapi.client.sheets.spreadsheets.values.get({
-                    spreadsheetId: SPREADSHEET_ID,
-                    range: 'Kategori!A:A', // Asumsi kategori ada di kolom A tab 'Kategori'
-                });
-                const categories = responseCategories.result.values ? responseCategories.result.values.flat() : [];
-                populateCategories(categories.slice(1)); // Abaikan header 'Nama Kategori'
-
-                // 2. Membaca transaksi
-                const responseTransactions = await gapi.client.sheets.spreadsheets.values.get({
-                    spreadsheetId: SPREADSHEET_ID,
-                    range: 'Transaksi!A:F', // Asumsi A: Tanggal, B: Jenis, C: Kategori, D: Deskripsi, E: Jumlah, F: Akun
-                });
-                const transactions = responseTransactions.result.values;
-                if (transactions && transactions.length > 1) { // Abaikan header
-                     updateSummaryAndTransactions(transactions.slice(1));
-                } else {
-                     latestTransactionsTableBody.innerHTML = '<tr><td colspan="5" style="text-align: center;">Belum ada transaksi.</td></tr>';
-                     totalIncomeSpan.textContent = 'Rp 0';
-                     totalExpenseSpan.textContent = 'Rp 0';
-                     currentBalanceSpan.textContent = 'Rp 0';
+        // Create new charts
+        flowChartInstance = new Chart(ctxFlow, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [
+                    {
+                        label: 'Pemasukan',
+                        data: incomeData,
+                        backgroundColor: 'rgba(0, 255, 255, 0.5)',
+                        borderColor: 'rgba(0, 255, 255, 1)',
+                        borderWidth: 1,
+                        borderRadius: 5
+                    },
+                    {
+                        label: 'Pengeluaran',
+                        data: expenseData,
+                        backgroundColor: 'rgba(255, 0, 255, 0.5)',
+                        borderColor: 'rgba(255, 0, 255, 1)',
+                        borderWidth: 1,
+                        borderRadius: 5
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { labels: { color: 'var(--text-secondary)' } } },
+                scales: {
+                    y: { ticks: { color: 'var(--text-secondary)' }, grid: { color: 'var(--border-color)' } },
+                    x: { ticks: { color: 'var(--text-secondary)' }, grid: { color: 'transparent' } }
                 }
-
-            } catch (err) {
-                console.error('Error saat memuat data dari Google Sheets:', err);
-                authStatusDiv.textContent = 'Gagal memuat data. Pastikan ID Google Sheet benar dan Anda memiliki akses. Error: ' + (err.result?.error?.message || err.message);
-                authStatusDiv.classList.add('error');
             }
-        }
+        });
 
-        // Fungsi untuk mengisi pilihan kategori
-        function populateCategories(categories) {
-            transactionCategorySelect.innerHTML = '<option value="">Pilih Kategori</option>'; // Reset
-            categories.forEach(category => {
-                if (category) { // Pastikan kategori tidak kosong
-                    const option = document.createElement('option');
-                    option.value = category;
-                    option.textContent = category;
-                    transactionCategorySelect.appendChild(option);
-                }
-            });
-        }
-
-        // Fungsi untuk mengupdate ringkasan dan tabel transaksi
-        function updateSummaryAndTransactions(transactions) {
-            let totalIncome = 0;
-            let totalExpense = 0;
-            latestTransactionsTableBody.innerHTML = ''; // Kosongkan tabel
-
-            // Hitung pemasukan/pengeluaran bulan ini (misal: bulan berjalan)
-            const today = new Date();
-            const currentMonth = today.getMonth();
-            const currentYear = today.getFullYear();
-
-            // Urutkan transaksi berdasarkan tanggal terbaru untuk tampilan tabel
-            transactions.sort((a, b) => new Date(b[0]) - new Date(a[0]));
-
-            transactions.forEach(row => {
-                // Pastikan struktur baris sesuai dengan yang diharapkan (minimal 5 kolom)
-                if (row.length < 5) {
-                    console.warn("Baris transaksi tidak lengkap:", row);
-                    return;
-                }
-                const [dateStr, type, category, description, amountStr] = row;
-                const amount = parseFloat(amountStr);
-                const transactionDate = new Date(dateStr);
-
-                // Cek untuk ringkasan bulan ini
-                if (transactionDate.getMonth() === currentMonth && transactionDate.getFullYear() === currentYear) {
-                    if (type === 'Pemasukan') {
-                        totalIncome += amount;
-                    } else if (type === 'Pengeluaran') {
-                        totalExpense += amount;
+        categoryChartInstance = new Chart(ctxCategory, {
+            type: 'doughnut',
+            data: {
+                labels: categoryLabels.length > 0 ? categoryLabels : ['Tidak ada data'],
+                datasets: [{
+                    label: 'Pengeluaran',
+                    data: categoryData.length > 0 ? categoryData : [1],
+                    backgroundColor: [
+                        'rgba(0, 255, 255, 0.7)',
+                        'rgba(255, 0, 255, 0.7)',
+                        'rgba(138, 43, 226, 0.7)',
+                        'rgba(75, 192, 192, 0.7)',
+                        'rgba(255, 159, 64, 0.7)',
+                    ],
+                    borderColor: 'var(--bg-secondary)',
+                    borderWidth: 2,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: { color: 'var(--text-secondary)' }
                     }
                 }
-
-                // Tampilkan di tabel (ambil 10 transaksi terbaru)
-                if (latestTransactionsTableBody.children.length < 10) {
-                    const tr = document.createElement('tr');
-                    tr.innerHTML = `
-                        <td>${dateStr}</td>
-                        <td>${type}</td>
-                        <td>${category}</td>
-                        <td>${description || '-'}</td>
-                        <td>Rp ${amount.toLocaleString('id-ID')}</td>
-                    `;
-                    latestTransactionsTableBody.appendChild(tr);
-                }
-            });
-
-            totalIncomeSpan.textContent = `Rp ${totalIncome.toLocaleString('id-ID')}`;
-            totalExpenseSpan.textContent = `Rp ${totalExpense.toLocaleString('id-ID')}`;
-            currentBalanceSpan.textContent = `Rp ${(totalIncome - totalExpense).toLocaleString('id-ID')}`;
-
-            if (transactions.length === 0) {
-                latestTransactionsTableBody.innerHTML = '<tr><td colspan="5" style="text-align: center;">Belum ada transaksi.</td></tr>';
-            }
-        }
-
-
-        // Event Listeners untuk form transaksi
-        btnPemasukan.addEventListener('click', () => {
-            btnPemasukan.classList.add('active');
-            btnPengeluaran.classList.remove('active');
-            transactionTypeInput.value = 'Pemasukan';
-        });
-
-        btnPengeluaran.addEventListener('click', () => {
-            btnPengeluaran.classList.add('active');
-            btnPemasukan.classList.remove('active');
-            transactionTypeInput.value = 'Pengeluaran';
-        });
-
-        transactionForm.addEventListener('submit', async (event) => {
-            event.preventDefault(); // Mencegah refresh halaman
-
-            const date = transactionDateInput.value;
-            const type = transactionTypeInput.value;
-            const category = transactionCategorySelect.value;
-            const description = document.getElementById('transaction-description').value;
-            const amount = document.getElementById('transaction-amount').value;
-            const account = document.getElementById('transaction-account').value;
-
-            if (!date || !type || !category || !amount || !account) {
-                showMessage('Semua kolom wajib diisi kecuali deskripsi!', 'error');
-                return;
-            }
-
-            const transactionData = [
-                date,
-                type,
-                category,
-                description,
-                parseFloat(amount),
-                account,
-                // Tambahkan kolom lain jika diperlukan, misal: Anggota Keluarga
-            ];
-
-            try {
-                const response = await gapi.client.sheets.spreadsheets.values.append({
-                    spreadsheetId: SPREADSHEET_ID,
-                    range: 'Transaksi!A:F', // Sesuaikan range kolom di Google Sheet Anda
-                    valueInputOption: 'USER_ENTERED', // Mengizinkan Google memformat angka/tanggal
-                    insertDataOption: 'INSERT_ROWS', // Memastikan baris baru ditambahkan
-                    resource: {
-                        values: [transactionData],
-                    },
-                });
-
-                console.log('Transaksi berhasil disimpan:', response);
-                showMessage('Transaksi berhasil disimpan!', 'success');
-                transactionForm.reset(); // Reset form
-                transactionDateInput.valueAsDate = new Date(); // Set tanggal ke hari ini
-                loadAppData(); // Muat ulang data untuk update dashboard dan tabel
-
-            } catch (err) {
-                console.error('Error saat menyimpan transaksi:', err);
-                const errorMessage = err.result?.error?.message || err.message || "Terjadi kesalahan tidak diketahui.";
-                showMessage('Gagal menyimpan transaksi: ' + errorMessage, 'error');
             }
         });
+    }
 
-        function showMessage(msg, type) {
-            formMessage.textContent = msg;
-            formMessage.className = `message ${type}`;
-            formMessage.style.display = 'block';
-            setTimeout(() => {
-                formMessage.style.display = 'none';
-            }, 5000); // Pesan akan hilang setelah 5 detik
-        }
+    // --- Date/Time Display ---
+    function updateDateTime() {
+        const now = new Date();
+        const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' };
+        document.getElementById('dateTime').textContent = now.toLocaleDateString('id-ID', options);
+    }
 
-        // Inisialisasi tanggal input menjadi hari ini saat DOM dimuat
-        document.addEventListener('DOMContentLoaded', () => {
-            transactionDateInput.valueAsDate = new Date();
-        });
+    // --- Main App Function ---
+    function saveAndRerender() {
+        localStorage.setItem('transactions', JSON.stringify(transactions));
+        localStorage.setItem('budgets', JSON.stringify(budgets));
+        renderSummary();
+        renderRecentTransactions();
+        renderAllTransactions();
+        renderBudgets();
+        renderCharts();
+    }
 
-        // Pastikan Google API client dimuat sebelum menginisialisasi client kita
-        // gapi.load() dipanggil oleh script eksternal, kita hanya perlu memastikan initClient dipanggil setelahnya.
-        // Fungsi handleClientLoad sudah dipanggil oleh tag <script async defer src="...">
-    </script>
+    // --- Event Listeners and Initial Load ---
+    document.addEventListener('DOMContentLoaded', () => {
+        document.getElementById('transactionForm').addEventListener('submit', addTransaction);
+        document.getElementById('tr-date').valueAsDate = new Date();
+        
+        updateDateTime();
+        setInterval(updateDateTime, 1000 * 60); // Update every minute
+        
+        saveAndRerender();
+        showTab('dashboard'); // Set default tab
+    });
+</script>
+
 </body>
 </html>
+
